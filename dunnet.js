@@ -1,3 +1,61 @@
+let commandMode = false;
+let commands = ["look", "get", "put", "drop", "send", "turn", "rlogin", "type", "anonymous", "binary", "cut cable", "d", "dig", "dir", "exit", "flush", "ftp gamma", "in", "ls", "out", "press switch", "quit", "reset", "robert", "sleep", "toukmond", "u", "uncompress paper.o.Z", "w", "worms", "xxx"];
+let subcommands = {
+  "look": ["bear", "bins", "bone", "box", "bus", "cpu", "paper", "pc", "shovel", "statuette", "towel", "urinal"],
+  "get": ["amethyst", "axe", "bill", "bone", "bracelet", "coins", "cpu", "diamond", "egg", "floppy", "food", "glycerine", "gold", "jar", "key", "lamp", "license", "life", "mona", "nitric", "paper", "platinum", "ruby", "shovel", "silver", "statuette", "towel", "weight"],
+  "put": ["amethyst in disposal", "bracelet in chute", "coins in mail", "cpu in computer", "diamond in chute", "egg in mail", "floppy in pc", "glycerine in jar", "gold in urinal", "key in box", "nitric in jar", "platinum in urinal", "ruby in disposal", "silver in mail"],
+  "drop": ["amethyst", "bill", "bone", "bracelet", "coins", "diamond", "egg", "floppy", "food", "gold", "jar", "key", "license", "mona", "paper", "platinum", "ruby", "shovel", "silver", "weight"],
+  "send": ["bracelet.o", "key.o", "lamp.o", "paper.o", "shovel.o"],
+  "turn": ["dial clockwise", "dial counterclockwise"],
+  "rlogin": ["endgame", "gamma"],
+  "type": ["foo.txt"]
+};
+
+function nextCommand(current, step) {
+  if (!current) return commands[0];
+
+  let command = first(current);
+  let completions = subcommands[command];
+  if (current.includes(" ") && completions) {
+    let subcommand = rest(current);
+    let index = completions.indexOf(subcommand);
+    if (index != -1) {
+      let newSubcommand = completions[(index + step + completions.length) % completions.length];
+      return `${command} ${newSubcommand}`;
+    }
+  } else {
+    let index = commands.indexOf(current);
+    if (index != -1) {
+      return commands[(index + step + commands.length) % commands.length]
+    }
+  }
+  return current;
+}
+
+function selectSubcommand(current) {
+  if (!current) return '';
+  let command = first(current);
+  let subs = subcommands[current];
+  if (subs) {
+    return `${command} ${subs[0]}`;
+  } else {
+    return command;
+  }    
+}
+
+function clearSubcommand(current) {
+  if (!current) return '';
+  return first(current);
+}
+
+function first(string) {
+  return string.replace(/ .*/,'');
+}
+
+function rest(string) {
+  return string.substring(string.indexOf(' ') + 1);
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   var main_content = document.getElementById('main-content');
   var terminal = document.getElementById('terminal');
@@ -6,18 +64,23 @@ document.addEventListener('DOMContentLoaded', function(){
   var input_callback = null;
   input.addEventListener('keyup', function(e) {
     if (e.key == "ArrowUp") {
-      input.value += "n";
+      input.value = commandMode ? nextCommand(input.value, -1) : input.value + "n";
       e.preventDefault();
     } else if (e.key == "ArrowDown") {
-      input.value += "s";
+      input.value = commandMode ? nextCommand(input.value, 1) : input.value + "s";
       e.preventDefault();
     } else if (e.key == "ArrowRight") {
-      input.value += "e";
+      input.value = commandMode ? selectSubcommand(input.value) : input.value + "e";
       e.preventDefault();
     } else if (e.key == "ArrowLeft") {
-      input.value += "w";
+      input.value = commandMode ? clearSubcommand(input.value) : input.value + "w";
+      e.preventDefault();
+    } else if (e.key == "Escape") {
+      commandMode = !commandMode;
+      input.value = commandMode ? nextCommand() : "";
       e.preventDefault();
     }
+    
     if(e.keyCode != 13) return;
     if(!input_callback) return;
     e.preventDefault();
