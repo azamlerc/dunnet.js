@@ -5,6 +5,19 @@ document.addEventListener('DOMContentLoaded', function(){
 
   var input_callback = null;
   input.addEventListener('keyup', function(e) {
+    if (e.key == "ArrowUp") {
+      input.value += "n";
+      e.preventDefault();
+    } else if (e.key == "ArrowDown") {
+      input.value += "s";
+      e.preventDefault();
+    } else if (e.key == "ArrowRight") {
+      input.value += "e";
+      e.preventDefault();
+    } else if (e.key == "ArrowLeft") {
+      input.value += "w";
+      e.preventDefault();
+    }
     if(e.keyCode != 13) return;
     if(!input_callback) return;
     e.preventDefault();
